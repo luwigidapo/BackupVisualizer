@@ -1,10 +1,10 @@
+// sorting.js
 const output = document.querySelector('#size_value');
 const bars = document.querySelector("#mainbody");
 const arraySize = document.querySelector('#size_slider');
 const selectText = document.querySelector('.selected');
 output.innerHTML = arraySize.value;
 
-// Counter variables
 let comparisonCount = 0;
 let swapCount = 0;
 let sortStartTime = 0;
@@ -13,7 +13,7 @@ let isPaused = false;
 let shouldReset = false;
 let sortingActive = false;
 let resolvePause = null;
-let sortOrder = 'ascending'; // Default sort order
+let sortOrder = 'ascending';
 
 var arrayVal = 15;
 arraySize.addEventListener('input', function () {
@@ -23,7 +23,8 @@ arraySize.addEventListener('input', function () {
     createNewArray(arrayVal);
 });
 
-let delay = 512; // Initial delay (2^9)
+let delay = 1024; // Initial delay (slowest)
+let minSpeed = 1, maxSpeed = 20; // Speed range
 
 let delayElement = document.querySelector('#speed_slider');
 const speedOutput = document.querySelector('#speed_value');
@@ -31,8 +32,9 @@ speedOutput.innerHTML = delayElement.value;
 
 delayElement.addEventListener('input', function () {
     selectText.innerHTML = `Speed Changed`;
-    speedOutput.innerHTML = this.value;
-    delay = Math.pow(2, 10 - this.value);
+    const speed = parseInt(this.value);
+    speedOutput.innerHTML = speed;
+    delay = 1024 / Math.pow(2, speed - 1); // Adjust delay based on speed (1-20)
 });
 
 let array = [];
@@ -40,7 +42,6 @@ let array = [];
 // Initialize with default array
 createNewArray(arrayVal);
 
-// Counter functions
 function resetCounters() {
     comparisonCount = 0;
     swapCount = 0;
@@ -57,8 +58,10 @@ function resetCounters() {
 function startTimer() {
     sortStartTime = Date.now();
     timerInterval = setInterval(() => {
-        const elapsed = (Date.now() - sortStartTime) / 1000;
-        document.getElementById('time-count').textContent = `${elapsed.toFixed(1)}s`;
+        if (!isPaused) {
+            const elapsed = (Date.now() - sortStartTime) / 1000;
+            document.getElementById('time-count').textContent = `${elapsed.toFixed(1)}s`;
+        }
     }, 100);
 }
 
@@ -87,16 +90,16 @@ function createNewArray(arrayVal, customArray = null) {
     resetCounters();
     deleteChild();
     array = [];
-    
+
     const maxHeight = 400;
     const minHeight = 20;
     const maxNumber = 1000;
-    
+
     if (customArray && customArray.length > 0) {
         // Use custom array
         const maxCustomValue = Math.max(...customArray);
         const minCustomValue = Math.min(...customArray);
-        
+
         for (let i = 0; i < customArray.length; i++) {
             const height = minHeight + ((customArray[i] - minCustomValue) / (maxCustomValue - minCustomValue)) * (maxHeight - minHeight);
             array.push({ height, number: customArray[i] });
@@ -109,8 +112,8 @@ function createNewArray(arrayVal, customArray = null) {
             const number = Math.floor(ratio * maxNumber);
             array.push({ height, number });
         }
-        
-        // Shuffle but keep height/number pairs together
+
+        // Shuffle
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
@@ -121,21 +124,16 @@ function createNewArray(arrayVal, customArray = null) {
         const barContainer = document.createElement("div");
         barContainer.className = 'bar-container';
         barContainer.style.width = `${(96 / array.length)}vw`;
-        
-        // Create number label (on top)
+
         const numberLabel = document.createElement("div");
         numberLabel.className = 'bar-number';
         numberLabel.textContent = array[i].number;
-        
-        // Dynamic font sizing based on array length
-        const fontSize = Math.max(8, 14 - Math.floor(array.length / 10));
-        numberLabel.style.fontSize = `${fontSize}px`;
-        
-        // Create bar
+        numberLabel.style.fontSize = `${Math.max(8, 14 - Math.floor(array.length / 10))}px`;
+
         const bar = document.createElement("div");
         bar.style.height = `${array[i].height}px`;
         bar.className = 'bar';
-        
+
         barContainer.appendChild(numberLabel);
         barContainer.appendChild(bar);
         bars.appendChild(barContainer);
@@ -150,15 +148,12 @@ function deleteChild() {
 
 const newArray = document.querySelector("#generate");
 newArray.addEventListener("click", function () {
-    var mouseclick = new Audio('Mouseclick.mp3');
-    mouseclick.play();
+    createNewArray(arrayVal);
     enableSortingBtn();
     enableSizeSlider();
-    selectText.innerHTML = `New Array Generated`;
-    createNewArray(arrayVal);
 });
 
-// Button state functions
+// Button states
 function disableSortingBtn() {
     document.querySelector(".BubbleSort").disabled = true;
     document.querySelector(".InsertionSort").disabled = true;
@@ -195,16 +190,12 @@ function createComparisonIndicator(index1, index2) {
     const barContainers = document.querySelectorAll('.bar-container');
     const element1 = barContainers[index1];
     const element2 = barContainers[index2];
-    
-    // Remove any existing indicators
     removeComparisonIndicators();
-    
-    // Create single arrow indicator between the bars
+
     const arrow = document.createElement('div');
     arrow.className = 'comparison-arrow';
     arrow.innerHTML = '⇄';
-    
-    // Position the arrow between the two bars
+
     const container = document.createElement('div');
     container.style.position = 'absolute';
     container.style.bottom = '0';
@@ -212,14 +203,11 @@ function createComparisonIndicator(index1, index2) {
     container.style.display = 'flex';
     container.style.justifyContent = 'center';
     container.appendChild(arrow);
-    
-    // Add to the first bar's container
     element1.appendChild(container);
 }
 
 function removeComparisonIndicators() {
-    const existingArrows = document.querySelectorAll('.comparison-arrow');
-    existingArrows.forEach(arrow => arrow.parentNode?.remove());
+    document.querySelectorAll('.comparison-arrow').forEach(arrow => arrow.parentNode?.remove());
 }
 
 async function waitforme(milisec) {
@@ -227,27 +215,25 @@ async function waitforme(milisec) {
         shouldReset = false;
         throw new Error('Reset requested');
     }
-    
+
     sortingActive = true;
     let startTime = Date.now();
     let elapsed = 0;
-    
+
     while (elapsed < milisec) {
         if (shouldReset) {
             sortingActive = false;
             throw new Error('Reset requested');
         }
-        
+
         if (isPaused) {
-            await new Promise(resolve => {
-                resolvePause = resolve;
-            });
+            await new Promise(resolve => { resolvePause = resolve; });
         }
-        
+
         elapsed = Date.now() - startTime;
         await new Promise(resolve => setTimeout(resolve, 10));
     }
-    
+
     sortingActive = false;
     return '';
 }
@@ -256,34 +242,32 @@ function swapping(index1, index2) {
     const barContainers = document.querySelectorAll('.bar-container');
     const element1 = barContainers[index1];
     const element2 = barContainers[index2];
-    
-    // Swap heights
     const bar1 = element1.querySelector('.bar');
     const bar2 = element2.querySelector('.bar');
     const tempHeight = bar1.style.height;
     bar1.style.height = bar2.style.height;
     bar2.style.height = tempHeight;
-    
-    // Swap numbers
+
     const num1 = element1.querySelector('.bar-number');
     const num2 = element2.querySelector('.bar-number');
     const tempText = num1.textContent;
     num1.textContent = num2.textContent;
     num2.textContent = tempText;
-    
+
     incrementSwap();
 }
 
 function togglePause() {
     isPaused = !isPaused;
     const pauseBtn = document.getElementById('pause-btn');
-    
     if (isPaused) {
         pauseBtn.textContent = "Resume";
         pauseBtn.style.backgroundColor = "#2ecc71";
+        stopTimer();
     } else {
         pauseBtn.textContent = "Pause";
         pauseBtn.style.backgroundColor = "#f39c12";
+        startTimer();
         if (resolvePause) {
             resolvePause();
             resolvePause = null;
@@ -294,43 +278,38 @@ function togglePause() {
 function resetSorting() {
     shouldReset = true;
     isPaused = false;
-    
     const pauseBtn = document.getElementById('pause-btn');
     pauseBtn.textContent = "Pause";
     pauseBtn.style.backgroundColor = "#f39c12";
-    
+
     if (resolvePause) {
         resolvePause();
         resolvePause = null;
     }
-    
+
     createNewArray(arrayVal);
     enableSortingBtn();
     enableSizeSlider();
     enableNewArrayBtn();
 }
 
-// Custom array implementation
+// Custom array and file upload functions (max size adjusted to 60)
 document.getElementById('custom-array-btn').addEventListener('click', function() {
     const input = document.getElementById('custom-array-input').value;
     const numbers = input.split(',').map(num => parseInt(num.trim())).filter(num => !isNaN(num));
-    
-    if (numbers.length > 30) {
-        alert('Maximum array size is 30. Only the first 30 numbers will be used.');
-        numbers.length = 30;
+
+    if (numbers.length > 60) {
+        alert('Maximum array size is 60. Only the first 60 numbers will be used.');
+        numbers.length = 60;
     }
-    
+
     if (numbers.length > 0) {
         createNewArray(numbers.length, numbers);
-        selectText.innerHTML = `Custom Array Loaded`;
-        enableSortingBtn();
-        enableSizeSlider();
     } else {
         alert('Please enter valid numbers separated by commas.');
     }
 });
 
-// File upload implementation
 document.getElementById('upload-array-btn').addEventListener('click', function() {
     document.getElementById('array-file-input').click();
 });
@@ -343,19 +322,14 @@ document.getElementById('array-file-input').addEventListener('change', function(
     reader.onload = function(e) {
         try {
             const content = e.target.result;
-            // Handle both CSV and TXT files
             const numbers = content.split(/[\s,]+/).map(num => parseInt(num.trim())).filter(num => !isNaN(num));
-            
-            if (numbers.length > 30) {
-                alert('Maximum array size is 30. Only the first 30 numbers will be used.');
-                numbers.length = 30;
+            if (numbers.length > 60) {
+                alert('Maximum array size is 60. Only the first 60 numbers will be used.');
+                numbers.length = 60;
             }
-            
+
             if (numbers.length > 0) {
                 createNewArray(numbers.length, numbers);
-                selectText.innerHTML = `Array Loaded from ${file.name}`;
-                enableSortingBtn();
-                enableSizeSlider();
             } else {
                 alert('No valid numbers found in the file.');
             }
@@ -366,32 +340,25 @@ document.getElementById('array-file-input').addEventListener('change', function(
     reader.readAsText(file);
 });
 
-// Maximize button implementation
+// Adjust maximize button functionality
 document.getElementById('maximize-btn').addEventListener('click', function() {
     document.getElementById('fullbody').classList.toggle('maximized');
-    this.textContent = document.getElementById('fullbody').classList.contains('maximized') ? 
-        'Minimize' : 'Maximize';
+    this.textContent = document.getElementById('fullbody').classList.contains('maximized') ? 'Minimize' : 'Maximize';
 });
 
-// Sort order buttons
+// Adjust sort order buttons
 document.getElementById('ascending-btn').addEventListener('click', function() {
     sortOrder = 'ascending';
     this.style.backgroundColor = '#27ae60';
     document.getElementById('descending-btn').style.backgroundColor = '#e74c3c';
-    selectText.innerHTML = `Sorting Order: Ascending`;
 });
 
 document.getElementById('descending-btn').addEventListener('click', function() {
     sortOrder = 'descending';
     this.style.backgroundColor = '#c0392b';
     document.getElementById('ascending-btn').style.backgroundColor = '#2ecc71';
-    selectText.innerHTML = `Sorting Order: Descending`;
 });
 
-// Data structure navigation button
-document.getElementById('data-structure-btn').addEventListener('click', function() {
-    window.location.href = 'stack.html';
-});
-
+// Button event listeners
 document.getElementById('pause-btn').addEventListener('click', togglePause);
 document.getElementById('reset-btn').addEventListener('click', resetSorting);
