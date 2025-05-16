@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="prism.css">
     <title>Sorting Visualizer</title>
     <style>
-        body {
+                body {
             margin: 0;
             padding: 0;
             font-family: 'Poppins', sans-serif;
@@ -52,7 +52,7 @@
             cursor: pointer;
         }
 
-        #stack-btn, #queues-btn {
+        #data-structure-btn {
             padding: 8px 15px;
             background-color: #9b59b6;
             color: white;
@@ -224,7 +224,7 @@
         }
 
         #code-panel {
-            background-color white;
+            background-color: white;
             border-radius: 5px;
             padding: 15px;
             margin-bottom: 20px;
@@ -347,63 +347,6 @@
             width: 100%;
         }
 
-        /* Dark mode styles */
-        body.dark-mode {
-            background-color: #121212;
-            color: #e0e0e0;
-        }
-
-        body.dark-mode header {
-            background-color: #1a1a1a;
-        }
-
-        body.dark-mode #info-panel,
-        body.dark-mode #definition-panel,
-        body.dark-mode #code-panel,
-        body.dark-mode #complexity-panel {
-            background-color: #1e1e1e;
-            color: #e0e0e0;
-        }
-
-        body.damode .panel-title {
-            color: #bb86fc;
-        }
-
-        body.dark-mode pre {
-            background-color: #2d2d2d;
-            color: #e0e0e0;
-        }
-
-        body.dark-mode .counter-box {
-            background-color: #2d2d2d;
-            color: #e0e0e0;
-        }
-
-        body.dark-mode .bar-number {
-            color: #e0e0e0;
-        }
-
-        /* New button styles */
-        #compare-btn {
-            padding: 8px 15px;
-            background-color: #9c27b0;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
-        #dark-mode-btn {
-            padding: 8px 15px;
-            background-color: #424242;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
         @media (max-width: 768px) {
             #main-content {
                 flex-direction: column;
@@ -412,7 +355,7 @@
                 width: 100%;
             }
             #info-panel {
-                border-right: none;
+                border_right: none;
                 border-bottom: 1px solid #ddd;
             }
         }
@@ -426,18 +369,22 @@
                 <div class="gen">
                     <button id="stack-btn" onclick="window.location.href='stack.html'">Stack</button>
                     <button id="queues-btn" onclick="window.location.href='queue.html'">Queues</button>
+                    <button id="compare-btn" onclick="window.location.href='compare/index.html'">Compare </button>
+                    <div class="dropdown">
+                        <button class="select">
+                            <div class="selected">Click any Button</div>
+                        </button>
+                    </div>
                     <button id="generate">Generate New Array</button>
-                    <button id="compare-btn" onclick="window.location.href='compare/index.html'">Compare Algorithms</button>
-                    <button id="dark-mode-btn">Toggle Dark Mode</button>
                 </div>
                 <div class="sizespeed">
                     <div class="array_range">
                         <span>Size: </span>
-                        <input type="range" id="size_slider" min="4" max="30" value="15">
+                        <input type="range" id="size_slider" min="4" max="60" value="15">
                         <span id="size_value">15</span>
                     </div>
                     <div id="custom-array-container">
-                        <input type="text" id="custom-array-input" placeholder="Enter numbers (max 30)">
+                        <input type="text" id="custom-array-input" placeholder="Enter numbers (max 60)">
                         <button id="custom-array-btn">Custom Array</button>
                     </div>
                     <div id="file-upload-container">
@@ -446,8 +393,8 @@
                     </div>
                     <div class="array_speed">
                         <span>Speed: </span>
-                        <input type="range" id="speed_slider" min="1" max="10" value="6">
-                        <span id="speed_value">6</span>
+                        <input type="range" id="speed_slider" min="1" max="20" value="10">
+                        <span id="speed_value">10</span>
                     </div>
                     <button id="maximize-btn">Maximize</button>
                 </div>
@@ -517,24 +464,5 @@
     <script src="insertion.js"></script>
     <script src="merge.js"></script>
     <script src="quick.js"></script>
-    
-    <script>
-        // Dark mode toggle functionality
-        document.getElementById('dark-mode-btn').addEventListener('click', function() {
-            document.body.classList.toggle('dark-mode');
-            
-            // Save preference to localStorage
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('darkMode', 'enabled');
-            } else {
-                localStorage.setItem('darkMode', 'disabled');
-            }
-        });
-        
-        // Check for saved dark mode preference
-        if (localStorage.getItem('darkMode') === 'enabled') {
-            document.body.classList.add('dark-mode');
-        }
-    </script>
 </body>
 </html>
